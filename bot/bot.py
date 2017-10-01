@@ -24,7 +24,7 @@ def process_all_messages(message):
     else:
         process = get_current_process(db_model.current_process)
     if not is_new:
-        result_message = 'Привет. Я начинающий бот-помощник\n'
+        result_message = 'Привет, я бот-интервьюер\n'
     else:
         result_message = ''
 
@@ -43,7 +43,7 @@ def get_result_message_by_process(answers, message, process, session_model, resu
             result_message += 'Скорее всего я не понял ваш вопрос =( \n Соединяю с компетентным представителем тех. поддержки'
             setattr(session_model, 'expired', True)
         else:
-            result_message += 'Скорее задавай свой вопрос!'
+            result_message += 'Назовите имя опроса, который хотите пройти!'
         return result_message
     mandatory_params = process['mandatory_params']
     for param in process['parameters']:

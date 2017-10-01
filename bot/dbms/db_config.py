@@ -1,2 +1,2 @@
-db_connection = 'mysql+pymysql://ufabchack:ufabchack@mysql:3306/ufabchack?charset=utf8'
+db_connection = 'mysql+pymysql://ufahack:ufahack@localhost:3306/ufahack?charset=utf8'
 

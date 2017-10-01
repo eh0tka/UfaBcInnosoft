@@ -16,7 +16,7 @@ class SessionModel(BASE):
     last_access_time = Column(DateTime)
     current_step = Column(Integer)
     current_process = Column(Integer)
-    process_params = Column(String)
+    process_params = Column(String(10000))
     current_param = Column(Integer)
 
 
