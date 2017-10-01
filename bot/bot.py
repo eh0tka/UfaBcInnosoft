@@ -5,31 +5,33 @@ import json
 from sqlalchemy import desc
 from datetime import datetime
 from dbms.db_model import session, SessionModel, ProcessModel
-
+from collections import OrderedDict
 bot = telebot.TeleBot(config.token)
 
 
-@bot.message_handler(content_types=["text"])
+@bot.message_handler(content_types=['text'])
 def process_all_messages(message):
     user_id = message.from_user.id
     db_model, is_new = get_current_process_and_step(user_id)
     process = None
     answers = None
     if db_model.current_process is None:
-        process = get_new_process( message)
-        if process is None:
-            pass
-        else:
+        process = get_new_process(message)
+        if process is not None:
             setattr(db_model, 'current_process', process['id'])
+            setattr(db_model, 'current_param', process['parameters'][0]['id'])
     else:
         process = get_current_process(db_model.current_process)
+
     if not is_new:
         result_message = 'Привет, я бот-интервьюер\n'
+    elif not process:
+        result_message = 'Такой опрос не найден\n'
     else:
         result_message = ''
 
     if db_model.process_params is None:
-        answers = dict()
+        answers = {}
     else:
         answers = json.loads(db_model.process_params)
 
@@ -38,39 +40,71 @@ def process_all_messages(message):
 
 
 def get_result_message_by_process(answers, message, process, session_model, result_message):
-    if (process is None):
-        if ('?' in message.text):
-            result_message += 'Скорее всего я не понял ваш вопрос =( \n Соединяю с компетентным представителем тех. поддержки'
-            setattr(session_model, 'expired', True)
-        else:
-            result_message += 'Назовите имя опроса, который хотите пройти!'
+    if process is None:
+        result_message += 'Назовите имя опроса, который хотите пройти!'
         return result_message
-    mandatory_params = process['mandatory_params']
-    for param in process['parameters']:
-        options = param['options']
-        opt_intersection = find_intersection_string(options, message.text)
 
-        if opt_intersection:
-            # идем к следующему параметру
-            answers[str(param['id'])] = opt_intersection
+    current_param = None
+    current_param_index = -1
+    for i in range(len(process['parameters'])):
+        param = process['parameters'][i]
+        if param['id'] == session_model.current_param:
+            current_param = param
+            current_param_index = i
 
-            setattr(session_model, 'process_params', json.dumps(answers))
+    options = current_param['options']
+    opt_intersection = find_intersection_string(options, message.text)
+
+    if opt_intersection or not options:
+        # идем к следующему параметру
+        if options:
+            answers[str(current_param['id'])] = opt_intersection
+        else:
+            answers[str(current_param['id'])] = message.text
+
+        setattr(session_model, 'process_params', json.dumps(answers))
+        session.commit()
+        if current_param_index < len(process['parameters']) - 1:
+            next_param = process['parameters'][current_param_index + 1]
+            setattr(session_model, 'current_param', next_param['id'])
             session.commit()
+            return 'Ответ записан. \n' + next_param['botMessagesSequence'][0]['text']
+        else:
             mand_keys = list(answers.keys())
-            if len(mand_keys) == len(mandatory_params):
+            if len(mand_keys) == len(process['parameters']):
                 action_msg = process['actions'][0]['text']
-                for k in answers.keys():
-                    action_msg = action_msg.replace(
-                        "{" + k + "}", answers[k])
+                answers = OrderedDict(sorted(answers.items()))
+                for q, a in answers.items():
+                    action_msg += '\nВопрос:\n'
+                    action_msg += get_question(q, process['parameters'])
+                    action_msg += '\nВаш ответ:\n'
+                    action_msg += a
                 setattr(session_model, 'expired', 1)
                 session.commit()
+
+                save_to_blockchain(list(answers.items()))
+
                 return action_msg
-        elif str(param['id']) in answers.keys():
-            pass
-        else:
-            result_message += param['botMessagesSequence'][0]['text']
-            return result_message
+    elif str(current_param['id']) in answers.keys():
+        pass
+    else:
+        result_message += current_param['botMessagesSequence'][0]['text']
+        if options:
+            result_message += '\nВозможные варианты ответов: ' + options
+        return result_message
+
     return '!!!Exceptional case!!!'
+
+
+def save_to_blockchain(list_of_string_answers):
+    pass
+
+
+def get_question(id, params):
+    for item in params:
+        if str(item['id']) == id:
+            return item['botMessagesSequence'][0]['text']
+    return ''
 
 
 def _get_keys(list_of_dict):
@@ -113,16 +147,15 @@ def find_intersection(keywords, words):
 
 def is_keyword_contains_value(k_set, words):
     for w in k_set:
-        if (w in words):
+        if w in words:
             return True
     return False
 
 
-def find_intersection_string(keywords, words):
+def find_intersection_string(keywords, text):
     k_set = keywords.split(',')
-    for w in k_set:
-        if w in words:
-            return w
+    if text in k_set:
+        return text
     return None
 
 
