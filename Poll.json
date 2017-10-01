@@ -1,0 +1,86 @@
+[
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "pollName",
+    "outputs": [{ "name": "", "type": "string" }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      { "name": "id", "type": "uint256" },
+      { "name": "_rating", "type": "uint256" }
+    ],
+    "name": "changeRating",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      { "name": "id", "type": "uint256" },
+      { "name": "_ans", "type": "uint256[]" }
+    ],
+    "name": "recordAnswers",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "owner",
+    "outputs": [{ "name": "", "type": "address" }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [{ "name": "id", "type": "uint256" }],
+    "name": "getAnswersById",
+    "outputs": [{ "name": "", "type": "uint256[]" }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [{ "name": "id", "type": "uint256" }],
+    "name": "getRatingById",
+    "outputs": [{ "name": "", "type": "uint256" }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "name": "_pollName", "type": "string" },
+      { "name": "_owner", "type": "address" }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "name": "", "type": "uint256" }],
+    "name": "AnswersRecorded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "name": "", "type": "uint256" },
+      { "indexed": false, "name": "", "type": "uint256" }
+    ],
+    "name": "RatingChanged",
+    "type": "event"
+  }
+]
