@@ -82,7 +82,7 @@ def get_result_message_by_process(answers, message, process, session_model, resu
                 setattr(session_model, 'expired', 1)
                 session.commit()
 
-                save_to_blockchain(list(answers.items()))
+                save_to_blockchain(session_model.user_id, list(answers.items()))
 
                 return action_msg
     elif str(current_param['id']) in answers.keys():
@@ -96,7 +96,7 @@ def get_result_message_by_process(answers, message, process, session_model, resu
     return '!!!Exceptional case!!!'
 
 
-def save_to_blockchain(list_of_string_answers):
+def save_to_blockchain(telegram_id, list_of_string_answers):
     pass
 
 
