@@ -1,0 +1,260 @@
+﻿<!DOCTYPE html>
+<html lang="ru-RU">
+<head>
+    <meta charset="UTF-8">
+    <title>Блокчейн-опросник</title>
+    <meta content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no' name='viewport'>
+    <!-- Bootstrap 3.3.2 -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous" />
+    <!-- Font Awesome Icons -->
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <!-- Ionicons -->
+    <link href="http://code.ionicframework.com/ionicons/2.0.0/css/ionicons.min.css" rel="stylesheet" type="text/css" />
+    <!-- Theme style -->
+    <link href="css/AdminLTE.min.css" rel="stylesheet" type="text/css" />
+    <!-- AdminLTE Skins. Choose a skin from the css/skins
+        folder instead of downloading all of them to reduce the load. -->
+    <link href="css/skins/_all-skins.min.css" rel="stylesheet" type="text/css" />
+
+    <script id="processTmpl" type="text/x-jsrender">
+        <li>
+            <a href="javascript:void(0);" onclick="configureProcess({{:id}});">{{:name}}</a>
+        </li>
+    </script>
+    <script id="processKeywordTmpl" type="text/x-jsrender">
+        <div style="padding: 4px 8px">
+            <input type="text" value="{{:#data}}" name="keyword" class="form-control" />
+        </div>
+    </script>
+    <script id="userMessageKeywordTmpl" type="text/x-jsrender">
+        <div style="padding: 4px 8px">
+            <input type="text" value="{{:#data}}" name="keyword" class="form-control" />
+        </div>
+    </script>
+    <script id="processParamTmpl" type="text/x-jsrender">
+        <li><a href="javascrip:void(0);" onclick="configureParameter({{:~processId}}, {{:id}});"><i class="fa fa-circle-o"></i> {{:name}}</a></li>
+    </script>
+    <script id="processActionTmpl" type="text/x-jsrender">
+        <li><a href="javascrip:void(0);" onclick="configureAction({{:~processId}}, {{:id}});"><i class="fa fa-circle-o"></i> {{:name}}</a></li>
+    </script>
+    <script id="processSettingsTmpl" type="text/x-jsrender">
+        <div class="content-header">
+            <h1>{{:name}}<small>Настройка опроса</small></h1>
+        </div>
+        <div class="content">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="box box-solid">
+                        <div class="box-header">
+                            <h3 class="box-title">Ключевые слова</h3>
+                        </div>
+                        <div class="box-body no-padding">
+                            <div id="processKeywords">
+                                {{for keywords tmpl="#processKeywordTmpl" /}}
+                            </div>
+                            <div style="padding: 4px 8px 8px 8px">
+                                <input type="text" name="keyword" placeholder="Ключевые слова (или)" onkeydown="onEdit(this, event, '#processKeywordTmpl', '#processKeywords');" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box box-solid">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">Параметры</h3>
+                        </div>
+                        <div class="box-body no-padding">
+                            <ul class="nav nav-pills nav-stacked" id="processParams">
+                                <!--<li class="active"><a href="#"><i class="fa fa-circle-o"></i> Тариф</a></li>-->
+                                {{for parameters ~processId=id tmpl='#processParamTmpl' /}}
+                            </ul>
+                            <div style="padding: 4px 8px 8px 8px">
+                                <input type="text" name="keyword" placeholder="Параметр для опроса" onkeydown="onEdit(this, event, '#processParamTmpl', '#processParams', createParameter, '{{:id}}');" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box box-solid">
+                        <div class="box-header with-border">
+                            <h3 class="box-title">Действие</h3>
+                        </div>
+                        <div class="box-body no-padding">
+                            <ul class="nav nav-pills nav-stacked" id="processActions">
+                                {{for actions ~processId=id tmpl='#processActionTmpl' /}}
+                            </ul>
+                            <div style="padding: 4px 8px 8px 8px">
+                                <input type="text" name="keyword" placeholder="Действие для опроса" onkeydown="onEdit(this, event, '#processActionTmpl', '#processActions', createParameter);" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-9" id="parameterSettings"></div>
+            </div>
+        </div>
+    </script>
+    <script id="parameterSettingsTmpl" type="text/x-jsrender">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3 class="box-title">{{:name}} <small>Настройка параметра</small></h3>
+            </div>
+            <div class="box-body">
+                <div class="form-group">
+                    <label>Что за параметр?</label>
+                    <select class="form-control" onchange="onParameterTypeChange(this, event);">
+                        <option value="Text" {{if type == 'Text'}} selected="selected" {{/if}}>Текст</option>
+                        <option value="Number" {{if type == 'Number'}} selected="selected" {{/if}}>Число</option>
+                        <option value="Date" {{if type == 'Date'}} selected="selected" {{/if}}>Дата</option>
+                        <option value="List" {{if type == 'List'}} selected="selected" {{/if}}>Список</option>
+                    </select>
+                </div>
+                {{if type == 'List'}}
+                <div class="form-group" id="parameterListSettings">
+                    <label>Что может быть в списке?</label> (через запятую)
+                    <input type="text" class="form-control" value="{{:options}}" />
+                </div>
+                {{/if}}
+                <div class="form-group">
+                    <label>Сообщения бота</label>
+                    <div id="parameter_{{:id}}_botMessages">
+                        {{for botMessagesSequence tmpl="#botMessageTmpl" ~type=type /}}
+                    </div>
+                    <div class="box box-primary box-solid bg-light-blue">
+                        <div class="box-body">
+                            <input type="text" name="keyword" placeholder="Что еще сказать пользователю?" onkeydown="onEdit(this, event, '#botMessageTmpl', '#parameter_{{:id}}_botMessages', createBotMessage);" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script id="botMessageTmpl" type="text/x-jsrender">
+        <div class="box box-primary box-solid bg-light-blue">
+            <div class="box-header">
+                <h3 class="box-title">
+                    <i class="fa fa-android" aria-hidden="true"></i> {{:text}}
+                </h3>
+            </div>
+            <div class="box-body">
+                <div id="botMessage_{{:id}}_userMessageOptions">
+                    {{for userMessagesOptions tmpl="#userMessageOptionTmpl" /}}
+                </div>
+                <div class="box box-default box-solid bg-gray">
+                    <div class="box-body">
+                        <input type="text" name="keyword" placeholder="Что еще может сказать пользователь?" onkeydown="onEdit(this, event, '#userMessageOptionTmpl', '#botMessage_{{:id}}_userMessageOptions', createUserMessageOption);" class="form-control" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+<script id="userMessageOptionTmpl" type="text/x-jsrender">
+        {{setPageData table="UserMessageOptions" key=id /}}
+        <div class="box box-solid box-default collapsed-box">
+            <div class="box-header" onclick="toggleCollapse(this);">
+                <h3 class="box-title">
+                    <i class="fa fa-user" aria-hidden="true"></i> {{:name}}
+                </h3>
+                <div class="box-tools pull-right">
+                    <button class="btn btn-default btn-sm"><i class="fa fa-plus"></i></button>
+                </div>
+            </div>
+            <div class="box-body">
+                <div class="form-group">
+                    <label class="text-black">
+                        <input type="checkbox" onchange="onUserOptionIsFinalChanged(this, event, {{:id}}, '{{:~type}}');" {{if isFinal}} checked="checked" {{/if}} />
+                        Финальный ответ:
+                    </label>
+                </div>
+                <div class="form-group" id="userMessageOption_{{:id}}_keywords_container">
+                    {{include tmpl="#userMessageOptionKeywordsTmpl" /}}
+                </div>
+                <div class="form-group" id="userMessageOption_{{:id}}_botMessages_container">
+                    {{include tmpl="#userMessageOptionBotAnswersTmpl" /}}
+                </div>
+            </div>
+        </div>
+    
+</script>
+    <script id="userMessageOptionKeywordsTmpl" type="text/x-jsrender">
+        <label class="text-black">Ключевые слова:</label>
+        {{if ~type == 'Date' && isFinal == true}}
+        <div class="text-black">
+            Для финального ответа у даты ключевые слова не указываются. Бот примет любую дату как окончачетльный ответ для этого параметра.<br /> Бот понимает человеческий язык типа "со следующей недели", "с начала месяца" и т.д.
+        </div>
+        {{else ~type == 'List'  && isFinal  == true}}
+        <div class="text-black">
+            Для финального ответа у списка ключевые слова не указываются. Бот примет любое точное соответсвие с одним из допустимых вариантов для списка как окончательный ответ для этого параметра.
+        </div>
+        {{else}}
+        <div id="userMessageOption_{{:id}}_keywords" data-notfinal>
+            {{for keywords tmpl="#userMessageKeywordTmpl" /}}
+        </div>
+        <div style="padding: 4px 8px 8px 8px">
+            <input type="text" name="keyword" placeholder="Ключевые слова (или)" onkeydown="onEdit(this, event, '#userMessageKeywordTmpl', '#userMessageOption_{{:id}}_keywords');" class="form-control" />
+        </div>
+        {{/if}}
+    </script>
+<script id="userMessageOptionBotAnswersTmpl" type="text/x-jsrender">
+        <label class="text-black">Сообщения бота:</label>
+        {{if isFinal  == true}}
+        <div class="text-black">
+            Для финального ответа бот уже не отправляет никаких сообщений
+        </div>
+        {{else}}
+        <div id="userMessageOption_{{:id}}_botMessages">
+            {{for botMessagesSequence tmpl="#botMessageTmpl" /}}
+        </div>
+        <div class="box box-primary box-solid bg-light-blue">
+            <div class="box-body">
+                <input type="text" name="keyword" placeholder="Что еще сказать пользователю?" onkeydown="onEdit(this, event, '#botMessageTmpl', 'userMessageOption_{{:id}}_botMessages', createBotMessage);" class="form-control" />
+            </div>
+        </div>
+        {{/if}}
+    </script>
+</head>
+<body class="skin-blue fixed">
+    <div class="wrapper">
+        <div class="main-header">
+            <a href="#" class="logo"><b>Blockhain</b> опросы</a>
+            <div class="navbar navbar-static-top">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                </div>
+                <div class="nav navbar-nav navbar-right">
+                    <p class="nav navbar-text" style="color: #ededed">Рустам</p>
+                </div>
+            </div>
+        </div>
+        <div class="main-sidebar">
+            <div class="sidebar">
+                <div class="user-panel">
+                    <div class="pull-left image">
+                        <img src="img/user3-128x128.jpg" class="img-circle" alt="User Image">
+                    </div>
+                    <div class="pull-left info">
+                        <p>Рустам</p>
+                        <small>Online</small>
+                    </div>
+                </div>
+                <ul class="sidebar-menu" id="processesList">
+                    <li class="header">Опросы</li>
+                </ul>
+                <div style="padding: 0 8px;">
+                    <input type="text" name="process" placeholder="Название опроса" class="form-control" onkeydown="onEdit(this, event, '#processTmpl', '#processesList', createProcess);" />
+                </div>
+            </div>
+        </div>
+        <div class="content-wrapper" id="processSettings">
+        </div>
+        <div class="main-footer">
+            &copy; 2017 - California wants us
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="./js/app.min.js" type="text/javascript"></script>
+    <script src="./plugins/slimScroll/jquery.slimscroll.min.js" type="text/javascript"></script>
+    <script src="./js/jsrender.min.js" type="text/javascript"></script>
+    <script src="./js/scripts.js" type="text/javascript"></script>
+</body>
+</html>
