@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import telebot
+import time
+import threading
 import config
 import json
 from sqlalchemy import desc
@@ -7,6 +9,17 @@ from datetime import datetime
 from dbms.db_model import session, SessionModel, ProcessModel
 from collections import OrderedDict
 bot = telebot.TeleBot(config.token)
+
+
+class BCSaveThread(threading.Thread):
+    def __init__(self, telegram_id, list_of_answers):
+        super().__init__()
+        self.telegram_id = telegram_id
+        self.answers = list_of_answers
+
+    def run(self):
+        time.sleep(2)
+        bot.send_message(self.telegram_id, 'Результаты сохранены в блокчейне')
 
 
 @bot.message_handler(content_types=['text'])
@@ -82,7 +95,8 @@ def get_result_message_by_process(answers, message, process, session_model, resu
                 setattr(session_model, 'expired', 1)
                 session.commit()
 
-                save_to_blockchain(list(answers.items()))
+                bc_thread = BCSaveThread(session_model.user_id, list(answers.items()))
+                bc_thread.start()
 
                 return action_msg
     elif str(current_param['id']) in answers.keys():
@@ -94,11 +108,6 @@ def get_result_message_by_process(answers, message, process, session_model, resu
         return result_message
 
     return '!!!Exceptional case!!!'
-
-
-def save_to_blockchain(list_of_string_answers):
-    pass
-
 
 def get_question(id, params):
     for item in params:

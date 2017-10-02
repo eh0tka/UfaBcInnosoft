@@ -14,30 +14,34 @@
 }
 
 var processId = 1500;
+
 function createProcess(text) {
-    var newProcess = { id: processId++, name: text };
+    var newProcess = {id: processId++, name: text};
     return bot.processes.push(newProcess);
 }
 
 var parameterId = 2500;
+
 function createParameter(text, processId) {
     processId = parseInt(processId);
     var process = bot.processes.filter(function (pr) {
         return pr.id === processId;
     })[0];
-    var parameter = { id: parameterId++, name: text }
+    var parameter = {id: parameterId++, name: text}
     process.parameters.push(parameter);
     return parameter;
 }
 
 var botMessageId = 3500;
+
 function createBotMessage(text) {
-    return { id: botMessageId++, text: text };
+    return {id: botMessageId++, text: text};
 }
 
 var userMessageOptionId = 4500;
+
 function createUserMessageOption(text) {
-    return { id: userMessageOptionId++, name: text };
+    return {id: userMessageOptionId++, name: text};
 }
 
 function onEdit(sender, event, tmpl, selector, func, processId) {
@@ -47,7 +51,7 @@ function onEdit(sender, event, tmpl, selector, func, processId) {
         if (func)
             val = func(val, processId);
 
-        var htmlOutput = template.render(val, { processId: processId });
+        var htmlOutput = template.render(val, {processId: processId});
         $(selector).append(htmlOutput);
         $(sender).val("");
     }
@@ -94,20 +98,18 @@ function onUserOptionIsFinalChanged(sender, event, userOptionId, paramType) {
 
     var userOption = pageData["UserMessageOptions"][userOptionId];
     userOption.isFinal = sender.checked;
-    $(keywordsSelector).html(keywordsTemplate.render(userOption, { type: paramType }));
-    $(botMessagesSelector).html(botMessagesTemplate.render(userOption, { type: paramType }));
+    $(keywordsSelector).html(keywordsTemplate.render(userOption, {type: paramType}));
+    $(botMessagesSelector).html(botMessagesTemplate.render(userOption, {type: paramType}));
 }
 
 var bot = {
     processes: [
         {
             "id": 1001,
-            "name": "Криптовалюта в России",
+            "name": "Криптовалюта в РФ",
             "keywords": [
-                "Криптовалюта, валюта",
-                "Россия, РФ, Российская Федерация"
+                "Криптовалюта в РФ, Криптовалюта в России"
             ],
-            "mandatory_params": [2001, 2002],
             "parameters": [
                 {
                     "id": 2001,
@@ -118,144 +120,73 @@ var bot = {
                         {
                             "id": 3001,
                             "text": "Оцените перспективность использования технологии блокчейн для финансового рынка РФ",
-                            "isFinal": false,
+                            "isFinal": true,
                             "userMessagesOptions": [
                                 {
                                     "id": 4001,
                                     "name": "Ответ дан",
-                                    "keywords": [
-                                        [
-                                            "да",
-                                            "конечно",
-                                            "выбрал"
-                                        ]
-                                    ],
-                                    "botMessagesSequence": [
-                                        {
-                                            "id": 3002,
-                                            "text": "Какой?",
-                                            "userMessagesOptions": [
-                                                {
-                                                    "id": 4002,
-                                                    "name": "Известный тариф",
-                                                    "isFinal": true,
-                                                    "keywords": null
-                                                },
-                                                {
-                                                    "id": 4003,
-                                                    "name": "Не помню",
-                                                    "keywords": [
-                                                        "не помню, не знаю"
-                                                    ],
-                                                    "botMessagesSequence": {
-                                                        "referenceId": 4011
-                                                    }
-                                                },
-                                                {
-                                                    "id": 4004,
-                                                    "name": "Неизвестный тариф",
-                                                    "isWildMatch": true,
-                                                    "keywords": null,
-                                                    "botMessagesSequence": [
-                                                        {
-                                                            "id": 3003,
-                                                            "text":
-                                                                "Я не такой умный бот на самом деле, не могу Вас понять. Выберите тариф из списка,пожалуйста : Все за 100, Все за 300, Все за 500, Все бесплатно ",
-                                                            "userMessageOptions": {
-                                                                "referenceId": 3002
-                                                            }
-                                                        }
-                                                    ]
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    "id": 4011,
-                                    "name": "Нет, тариф не выбран",
-                                    "keywords": "нет, не выбрал, не знаю",
-                                    "botMessagesSequence": [
-                                        {
-                                            "id": 3011,
-                                            "name": "Вам нужна помощь в выборе тарифа?",
-                                            "userMessagesOptions": [
-                                                {
-                                                    "name": "Да, нужна помощь в выборе тарифа",
-                                                    "keywords": [
-                                                        "да, нужна, помогите, помощь, пожалуйста"
-                                                    ],
-                                                    "isCancel": true,
-                                                    "botMessage":
-                                                        "К сожалению, я Вам не могу помочь, я не такой умный... ("
-                                                },
-                                                {
-                                                    "name": "Нет, помощь в выборе тарифа не нужна",
-                                                    "keywords": [
-                                                        "да, нужна, помогите, помощь, пожалуйста"
-                                                    ],
-                                                    "isCancel": true,
-                                                    "botMessage":
-                                                        "Ок! Тогда возвращайтесь, когда выберете тариф. А вообще, Вы странный...)"
-                                                }
-                                            ]
-                                        }
-                                    ]
+                                    "keywords": []
                                 }
                             ]
                         }
                     ]
                 },
                 {
-                    "id": 2101,
-                    "name": "Полезность официального признания криптовалют",
+                    "id": 2002,
+                    "name": "Регулирование законодательством",
                     "type": "List",
-                    "options": "с начала месяца",
+                    "options": "да,нет",
                     "botMessagesSequence": [
                         {
-                            "id": 3101,
-                            "text": "Оцените полезность официального признания криптовалют для российской экономики",
+                            "id": 3002,
+                            "text": "Возможно ли вообще регулировать рынок криптовалют с помощью законодательства?",
                             "isFinal": true,
                             "userMessagesOptions": [
                                 {
-                                    id: 4101,
-                                    name: "Правильная дата",
-                                    isFinal: true
+                                    "id": 4002,
+                                    "name": "Ответ дан",
+                                    "keywords": []
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": 2003,
+                    "name": "Зарубежный опыт",
+                    "type": "Text",
+                    "options": "",
+                    "botMessagesSequence": [
+                        {
+                            "id": 3002,
+                            "text": "Чей зарубежный опыт наиболее полезен и применим для развития новейших финансовых технологий в РФ?",
+                            "isFinal": true,
+                            "userMessagesOptions": [
+                                {
+                                    "id": 4002,
+                                    "name": "Ответ дан",
+                                    "keywords": []
                                 }
                             ]
                         }
                     ]
                 }
             ],
-            "actions":
-            [
+            "actions": [
                 {
-                    id: 5001,
-                    name: "Успешная смена тарифа",
-                    text: "Вы выбрали тариф: {} и дату: {}"
-                },
-                {
-                    id: 5002,
-                    name: "Непоняточка",
-                    text: "Пожалуйста подождтие. С вами свяжется СПЕЦИАЛЬНО обученный ЧЕЛОВЕК. НЕ БОТ!"
+                    "id": 5001,
+                    "name": "Опрос успешно пройден",
+                    "text": "Спасибо за участие!"
                 }
             ]
         },
         {
-            name: "Не прошел платеж",
+            name: "Перспективные направления использования блокчейна",
             id: 1002
         },
         {
-            name: "Непонятны списания со счета",
+            name: "Оценка участников хакатона УфаБлокчейн",
             id: 1003
-        },
-        {
-            name: "Помочь в выборе тарифа",
-            id: 1004
-        },
-        {
-            name: "Узнать стоимость услуги",
-            id: 1005
         }
     ]
 };

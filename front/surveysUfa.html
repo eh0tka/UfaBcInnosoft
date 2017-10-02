@@ -52,14 +52,11 @@
                             <div id="processKeywords">
                                 {{for keywords tmpl="#processKeywordTmpl" /}}
                             </div>
-                            <div style="padding: 4px 8px 8px 8px">
-                                <input type="text" name="keyword" placeholder="Ключевые слова (или)" onkeydown="onEdit(this, event, '#processKeywordTmpl', '#processKeywords');" class="form-control" />
-                            </div>
                         </div>
                     </div>
                     <div class="box box-solid">
                         <div class="box-header with-border">
-                            <h3 class="box-title">Параметры</h3>
+                            <h3 class="box-title">Вопросы</h3>
                         </div>
                         <div class="box-body no-padding">
                             <ul class="nav nav-pills nav-stacked" id="processParams">
@@ -67,23 +64,21 @@
                                 {{for parameters ~processId=id tmpl='#processParamTmpl' /}}
                             </ul>
                             <div style="padding: 4px 8px 8px 8px">
-                                <input type="text" name="keyword" placeholder="Параметр для опроса" onkeydown="onEdit(this, event, '#processParamTmpl', '#processParams', createParameter, '{{:id}}');" class="form-control" />
+                                <input type="text" name="keyword" placeholder="Еще вопрос" onkeydown="onEdit(this, event, '#processParamTmpl', '#processParams', createParameter, '{{:id}}');" class="form-control" />
                             </div>
                         </div>
                     </div>
+
                     <div class="box box-solid">
-                        <div class="box-header with-border">
-                            <h3 class="box-title">Действие</h3>
-                        </div>
-                        <div class="box-body no-padding">
-                            <ul class="nav nav-pills nav-stacked" id="processActions">
-                                {{for actions ~processId=id tmpl='#processActionTmpl' /}}
-                            </ul>
-                            <div style="padding: 4px 8px 8px 8px">
-                                <input type="text" name="keyword" placeholder="Действие для опроса" onkeydown="onEdit(this, event, '#processActionTmpl', '#processActions', createParameter);" class="form-control" />
-                            </div>
-                        </div>
+                          <div class="box-header with-border">
+                     		<input type="checkbox" style="margin-right: 5px">Закрытый опрос
+                     		</div>
+                     		<div style="padding: 4px 8px 8px 8px">
+                     		<input type="text" name="participants" placeholder="Telegram никнеймы участников" class="form-control">
+                     	</div>
+                    	<button class="form-control">Отправить опрос в блокчейн</button>
                     </div>
+
                 </div>
                 <div class="col-md-9" id="parameterSettings"></div>
             </div>
@@ -92,11 +87,11 @@
     <script id="parameterSettingsTmpl" type="text/x-jsrender">
         <div class="box box-primary">
             <div class="box-header with-border">
-                <h3 class="box-title">{{:name}} <small>Настройка параметра</small></h3>
+                <h3 class="box-title">{{:name}} <small>Настройка вопроса</small></h3>
             </div>
             <div class="box-body">
                 <div class="form-group">
-                    <label>Что за параметр?</label>
+                    <label>Что за вопрос?</label>
                     <select class="form-control" onchange="onParameterTypeChange(this, event);">
                         <option value="Text" {{if type == 'Text'}} selected="selected" {{/if}}>Текст</option>
                         <option value="Number" {{if type == 'Number'}} selected="selected" {{/if}}>Число</option>
@@ -110,17 +105,6 @@
                     <input type="text" class="form-control" value="{{:options}}" />
                 </div>
                 {{/if}}
-                <div class="form-group">
-                    <label>Сообщения бота</label>
-                    <div id="parameter_{{:id}}_botMessages">
-                        {{for botMessagesSequence tmpl="#botMessageTmpl" ~type=type /}}
-                    </div>
-                    <div class="box box-primary box-solid bg-light-blue">
-                        <div class="box-body">
-                            <input type="text" name="keyword" placeholder="Что еще сказать пользователю?" onkeydown="onEdit(this, event, '#botMessageTmpl', '#parameter_{{:id}}_botMessages', createBotMessage);" class="form-control" />
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </script>
@@ -185,26 +169,6 @@
         <div id="userMessageOption_{{:id}}_keywords" data-notfinal>
             {{for keywords tmpl="#userMessageKeywordTmpl" /}}
         </div>
-        <div style="padding: 4px 8px 8px 8px">
-            <input type="text" name="keyword" placeholder="Ключевые слова (или)" onkeydown="onEdit(this, event, '#userMessageKeywordTmpl', '#userMessageOption_{{:id}}_keywords');" class="form-control" />
-        </div>
-        {{/if}}
-    </script>
-<script id="userMessageOptionBotAnswersTmpl" type="text/x-jsrender">
-        <label class="text-black">Сообщения бота:</label>
-        {{if isFinal  == true}}
-        <div class="text-black">
-            Для финального ответа бот уже не отправляет никаких сообщений
-        </div>
-        {{else}}
-        <div id="userMessageOption_{{:id}}_botMessages">
-            {{for botMessagesSequence tmpl="#botMessageTmpl" /}}
-        </div>
-        <div class="box box-primary box-solid bg-light-blue">
-            <div class="box-body">
-                <input type="text" name="keyword" placeholder="Что еще сказать пользователю?" onkeydown="onEdit(this, event, '#botMessageTmpl', 'userMessageOption_{{:id}}_botMessages', createBotMessage);" class="form-control" />
-            </div>
-        </div>
         {{/if}}
     </script>
 </head>
@@ -247,7 +211,7 @@
         <div class="content-wrapper" id="processSettings">
         </div>
         <div class="main-footer">
-            &copy; 2017 - California wants us
+            &copy; 2017 - Innosoft Blockchain Ufa Hack
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
