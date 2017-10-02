@@ -26,6 +26,12 @@ class ProcessModel(BASE):
     process_id = Column(Integer, primary_key=True)
     process_flow = Column(JSON)
 
+class UsersSurveysModel(BASE):
+    __tablename__ = 'user_survey'
+
+    user_id = Column(Integer, primary_key=True)
+    survey_id = Column(Integer, primary_key=True)
+
 
 engine = create_engine(db_connection)
 BASE.metadata.create_all(engine)

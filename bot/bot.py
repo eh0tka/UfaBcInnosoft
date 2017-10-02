@@ -6,8 +6,9 @@ import config
 import json
 from sqlalchemy import desc
 from datetime import datetime
-from dbms.db_model import session, SessionModel, ProcessModel
+from dbms.db_model import session, SessionModel, ProcessModel, UsersSurveysModel
 from collections import OrderedDict
+
 bot = telebot.TeleBot(config.token)
 
 
@@ -40,6 +41,11 @@ def process_all_messages(message):
         result_message = 'Привет, я бот-интервьюер\n'
     elif not process:
         result_message = 'Такой опрос не найден\n'
+    elif user_already_passed(db_model.user_id, process['id']):
+        result_message = 'Вы уже проходили этот опрос\n'
+        bot.reply_to(message, result_message)
+        setattr(db_model, 'current_process', None)
+        return
     else:
         result_message = ''
 
@@ -93,6 +99,8 @@ def get_result_message_by_process(answers, message, process, session_model, resu
                     action_msg += '\nВаш ответ:\n'
                     action_msg += a
                 setattr(session_model, 'expired', 1)
+                user_survey = UsersSurveysModel(user_id=session_model.user_id, survey_id=process['id'])
+                session.add(user_survey)
                 session.commit()
 
                 bc_thread = BCSaveThread(session_model.user_id, list(answers.items()))
@@ -108,6 +116,7 @@ def get_result_message_by_process(answers, message, process, session_model, resu
         return result_message
 
     return '!!!Exceptional case!!!'
+
 
 def get_question(id, params):
     for item in params:
@@ -166,6 +175,14 @@ def find_intersection_string(keywords, text):
     if text in k_set:
         return text
     return None
+
+
+def user_already_passed(user_id, survey_id):
+    query_result = session.query(UsersSurveysModel).filter(UsersSurveysModel.user_id == user_id,
+                                                           UsersSurveysModel.survey_id == survey_id).first()
+    if query_result:
+        return True
+    return False
 
 
 def get_current_process_and_step(user_id):
