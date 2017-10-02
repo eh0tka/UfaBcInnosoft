@@ -1,5 +1,7 @@
 <?php
 
+require __DIR__ . '/vendor/autoload.php'; //load library by composer "stephenhill/base58": "~1.0"
+
 class WavesAPIService
 {
     use HttpRequester;
@@ -71,58 +73,70 @@ class WavesAPIService
     private static function calculateTransferSignature($inputData)
     {
         //do some heavy math
+        //Transaction type (0x04)
+        $result = [
+            4
+        ];
+
+        //Sender's public key - 32 bytes
+        $result = array_merge($result, base58ToByteArray($inputData['senderPublicKey']));
+
+        //Amount's asset flag (0-Waves, 1-Asset) - 1 byte
+        //TODO:
+
+        //Amount's asset ID (*if used) = 0 or 32
+        //TODO:
+
+        //Amount's asset ID (*if used) = 0 or 32
+        //TODO:
+
+        //Fee's asset flag (0-Waves, 1-Asset) - 1 byte
+        //TODO:
+
+        //Fee's asset ID (**if used) - 0 or 32
+        //TODO:
+
+        //Timestamp - 8 bytes
+        //TODO:
+
+        //Amount - 8 bytes
+        //TODO:
+
+        //Fee - 8 bytes
+        //TODO:
+
+        //Recipient's address - 26 bytes
+        //TODO:
+
+        //Attachment's length (N) - 2 bytes
+        //TODO:
+
+        //Attachment's bytes - N bytes
+        //TODO:
+
+        //get data do sign:
+        //TODO:
+
+        //sign with private key
+        //TODO:
+
         //https://github.com/wavesplatform/Waves/wiki/Cryptographic-practical-details#signing
+        //https://github.com/wavesplatform/Waves/wiki/Data-Structures
         return '44bKL8ubcR6hyuQuV6HAq7opWkNxuZxxJ4TtzjxGEzEEWPczCkdAwzpF4aBcjBLqUAGT5gHfr4kWcYt54erm9vhd';
     }
 }
 
-class base58
+function base58ToByteArray($base58String)
 {
-    static public $alphabet = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
-    public static function encode($int) {
-        $base58_string = "";
-        $base = strlen(self::$alphabet);
-        while($int >= $base) {
-            $div = floor($int / $base);
-            $mod = ($int - ($base * $div)); // php's % is broke with >32bit int on 32bit proc
-            $base58_string = self::$alphabet{$mod} . $base58_string;
-            $int = $div;
-        }
-        if($int) $base58_string = self::$alphabet{$int} . $base58_string;
-        return $base58_string;
+    $base58 = new StephenHill\Base58();
+    $converted = $base58->decode($base58String);
+
+    $result = [];
+    $len = strlen($converted);
+    for ($i = 0; $i < $len; $i++) {
+        $result[] = ord($converted[$i]);
     }
 
-    public static function decode($base58) {
-        $result = '';
-        for($i=strlen($base58)-1,$j=1,$base=strlen(self::$alphabet);$i>=0;$i--,$j*=$base) {
-            $result .= $j * strpos(self::$alphabet, $base58{$i});
-        }
-        return $result;
-    }
+    return $result;
 }
-
-function depositAddress($destinationAddress, $orderAmountWaves)
-{
-    //executor
-    $obj = new WavesAPIService([
-        'yorso_wallet' => '3NAqh5VMMWqhDJ2b9chNguRAc9bzEqecHbs',
-        'yorso_public_key' => 'Go2r2WX9SQYxWazE8eBbb4RyMxMYsUREBpDv67BFuaRY',
-        'yorso_private_key' => 'HiNnUQfX66wvxnNrLL2xxHWmCn9K4qJp776wZy6cNaK3',
-        'testnet_address' => 'http://52.30.47.67:6869',
-        'yorso_token_id' => 'H8BSjn3NsSrxhD4nB2LpdcqwAKDHSY7JaZvscLg7iquq',
-    ]);
-
-    $share = $obj->getTokenShare($destinationAddress);
-    //if share is zero - do nothing
-    if (!$share) {
-        return;
-    }
-
-    //transfer waves to investor address
-    $result = $obj->transferWaves($destinationAddress, $orderAmountWaves * $share);
-}
-
-
-$destinationAddress = '3N4JU6J7aSLKBZquma3gscv9FjD5o39x2Vq';
-depositAddress($destinationAddress, 50);
 
