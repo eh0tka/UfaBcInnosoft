@@ -60,7 +60,7 @@ class WavesAPIService
             'timestamp' => time(),
         ];
 
-        $data['signature'] = self::calculateTransferSignature($data);
+        $data['signature'] = $this->calculateTransferSignature($data);
 
         $builder->parameters = json_encode($data);
         $builder->headers = [
@@ -70,60 +70,60 @@ class WavesAPIService
         return $this->sendPostRequest($builder);
     }
 
-    private static function calculateTransferSignature($inputData)
+private function calculateTransferSignature($inputData)
     {
         //do some heavy math
-        //Transaction type (0x04)
+        //1. Transaction type (0x04)
         $result = [
             4
         ];
 
-        //Sender's public key - 32 bytes
+        //2. Sender's public key - 32 bytes
         $result = array_merge($result, base58ToByteArray($inputData['senderPublicKey']));
 
-        //Amount's asset flag (0-Waves, 1-Asset) - 1 byte
-        //TODO:
+        //3. Amount's asset flag (0-Waves, 1-Asset) - 1 byte
+        $result[] = 0;
 
-        //Amount's asset ID (*if used) = 0 or 32
-        //TODO:
+        //4. Amount's asset ID (*if used) = 0 or 32
+        //we are using waves - than just do nothing and continue
 
-        //Amount's asset ID (*if used) = 0 or 32
-        //TODO:
+        //5. Fee's asset flag (0-Waves, 1-Asset) - 1 byte
+        $result[] = 0;
 
-        //Fee's asset flag (0-Waves, 1-Asset) - 1 byte
-        //TODO:
+        //6. Fee's asset ID (**if used) - 0 or 32
+        //we are using waves - than just do nothing and continue
 
-        //Fee's asset ID (**if used) - 0 or 32
-        //TODO:
+        //7. Timestamp - 8 bytes
+        $time = longToByteArray($inputData['timestamp']);
+        $result = array_merge($result, $time);
 
-        //Timestamp - 8 bytes
-        //TODO:
+        //8. Amount - 8 bytes
+        $amount = longToByteArray($inputData['amount']);
+        $result = array_merge($result, $amount);
 
-        //Amount - 8 bytes
-        //TODO:
+        //9. Fee - 8 bytes
+        $fee = longToByteArray($inputData['fee']);
+        $result = array_merge($result, $fee);
 
-        //Fee - 8 bytes
-        //TODO:
+        //10. Recipient's address - 26 bytes
+        $result = array_merge($result, base58ToByteArray($inputData['recipient']));
 
-        //Recipient's address - 26 bytes
-        //TODO:
+        //11. Attachment's length (N) - 2 bytes
+        //we don't have attachments - fill two zeros
+        $result[] = 0;
+        $result[] = 0;
 
-        //Attachment's length (N) - 2 bytes
-        //TODO:
-
-        //Attachment's bytes - N bytes
-        //TODO:
-
-        //get data do sign:
-        //TODO:
+        //12. Attachment's bytes - N bytes
+        //we have no attachment bytes - than zero
 
         //sign with private key
-        //TODO:
+        $signature = self::buildSignature($result, $this->privateKey);
 
         //https://github.com/wavesplatform/Waves/wiki/Cryptographic-practical-details#signing
         //https://github.com/wavesplatform/Waves/wiki/Data-Structures
         return '44bKL8ubcR6hyuQuV6HAq7opWkNxuZxxJ4TtzjxGEzEEWPczCkdAwzpF4aBcjBLqUAGT5gHfr4kWcYt54erm9vhd';
     }
+
 }
 
 function base58ToByteArray($base58String)
