@@ -73,7 +73,7 @@ def process_all_messages(message):
 
 def get_result_message_by_process(answers, message, process, session_model, result_message):
     if process is None:
-        result_message += 'Назовите имя опроса, который хотите пройти!'
+        result_message += 'Назовите имя опроса, который хотите пройти!\n Доступные опросы:\n Криптовалюта в РФ'
         return result_message
 
     current_param = None
