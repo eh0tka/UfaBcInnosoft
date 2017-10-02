@@ -30,8 +30,8 @@ class BCSaveThread(threading.Thread):
 @bot.message_handler(content_types=['text'])
 def process_all_messages(message):
     user_id = message.from_user.id
-    if message.startswith('ответы'):
-        if 'Криптовалюта в РФ' in message:
+    if message.text.startswith('ответы'):
+        if 'Криптовалюта в РФ' in message.text:
             bot.reply_to(message, 'Выгружаем данные из блокчейна')
             contractHandler = ContractHandler()
             answers = contractHandler.getAnswersById("CryptoRF", str(user_id))
@@ -116,7 +116,7 @@ def get_result_message_by_process(answers, message, process, session_model, resu
                 session.add(user_survey)
                 session.commit()
 
-                bc_thread = BCSaveThread(session_model.user_id, list(answers.items()))
+                bc_thread = BCSaveThread(session_model.user_id, list(answers.values()))
                 bc_thread.start()
 
                 return action_msg

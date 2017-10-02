@@ -3,6 +3,7 @@ from web3 import Web3, RPCProvider
 from os import path
 import requests
 import json
+import base64
 
 
 class ContractHandler:
@@ -51,19 +52,21 @@ class ContractHandler:
 
     def recordAnswers(self, pollName, id, answer):
         self.web3.personal.unlockAccount(self.main_account, self.main_password)
-        txAddress = self.polls[pollName].transact({'from': self.main_account}).recordAnswers(id, answer)
+        ansb64 = base64.b64encode(bytearray(answer, encoding='utf-8'))
+        txAddress = self.polls[pollName].transact({'from': self.main_account}).recordAnswers(id, ansb64)
         return "https://kovan.etherscan.io/tx/" + str(txAddress)
 
 
     def getAnswersById(self, pollName, id):
         self.web3.personal.unlockAccount(self.main_account, self.main_password)
-        answers = self.polls[pollName].call({'from': self.main_account}).getAnswersById(id)
-        return answers
+        ansb64 = self.polls[pollName].call({'from': self.main_account}).getAnswersById(id)
+
+        return base64.b64decode(ansb64).decode('utf-8')
 
 
 if __name__ == "__main__":
     contractHandler = ContractHandler()
     #contractHandler.createPoll("CryptoRF")
-    print(contractHandler.recordAnswers("CryptoRF", "787897", "2;34324;sdaff"))
+    print(contractHandler.recordAnswers("CryptoRF", "787897", "2;34324;ааап"))
     sleep(10)
     print(contractHandler.getAnswersById("CryptoRF", "787897"))
