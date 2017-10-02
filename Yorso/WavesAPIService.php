@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . '/vendor/autoload.php'; //load library by composer "stephenhill/base58": "~1.0"
+require __DIR__ . '/vendor/autoload.php'; //load library by composer "stephenhill/base58": "~1.0" and "leigh/curve25519"
 
 class WavesAPIService
 {
