@@ -8,8 +8,11 @@ from sqlalchemy import desc
 from datetime import datetime
 from dbms.db_model import session, SessionModel, ProcessModel, UsersSurveysModel
 from collections import OrderedDict
+from contractHandler import ContractHandler
 
 bot = telebot.TeleBot(config.token)
+
+POLL_NAME = 'CryptoRF'
 
 
 class BCSaveThread(threading.Thread):
@@ -17,45 +20,55 @@ class BCSaveThread(threading.Thread):
         super().__init__()
         self.telegram_id = telegram_id
         self.answers = list_of_answers
+        self.ch = ContractHandler()
 
     def run(self):
-        time.sleep(2)
-        bot.send_message(self.telegram_id, 'Результаты сохранены в блокчейне')
+        tr_hash = self.ch.recordAnswers(POLL_NAME, str(self.telegram_id), str(self.answers))
+        bot.send_message(self.telegram_id, 'Результаты сохранены в блокчейне. Хэш транзакции:' + tr_hash)
 
 
 @bot.message_handler(content_types=['text'])
 def process_all_messages(message):
     user_id = message.from_user.id
-    db_model, is_new = get_current_process_and_step(user_id)
-    process = None
-    answers = None
-    if db_model.current_process is None:
-        process = get_new_process(message)
-        if process is not None:
-            setattr(db_model, 'current_process', process['id'])
-            setattr(db_model, 'current_param', process['parameters'][0]['id'])
+    if message.startswith('ответы'):
+        if 'Криптовалюта в РФ' in message:
+            bot.reply_to(message, 'Выгружаем данные из блокчейна')
+            contractHandler = ContractHandler()
+            answers = contractHandler.getAnswersById("CryptoRF", str(user_id))
+            bot.reply_to(message, answers)
+        else:
+            bot.reply_to(message, 'Вы не проходили такой опрос')
     else:
-        process = get_current_process(db_model.current_process)
+        db_model, is_new = get_current_process_and_step(user_id)
+        process = None
+        answers = None
+        if db_model.current_process is None:
+            process = get_new_process(message)
+            if process is not None:
+                setattr(db_model, 'current_process', process['id'])
+                setattr(db_model, 'current_param', process['parameters'][0]['id'])
+        else:
+            process = get_current_process(db_model.current_process)
 
-    if not is_new:
-        result_message = 'Привет, я бот-интервьюер\n'
-    elif not process:
-        result_message = 'Такой опрос не найден\n'
-    elif user_already_passed(db_model.user_id, process['id']):
-        result_message = 'Вы уже проходили этот опрос\n'
+        if not is_new:
+            result_message = 'Привет, я бот-интервьюер\n'
+        elif not process:
+            result_message = 'Такой опрос не найден\n'
+        elif user_already_passed(db_model.user_id, process['id']):
+            result_message = 'Вы уже проходили этот опрос\n'
+            bot.reply_to(message, result_message)
+            setattr(db_model, 'current_process', None)
+            return
+        else:
+            result_message = ''
+
+        if db_model.process_params is None:
+            answers = {}
+        else:
+            answers = json.loads(db_model.process_params)
+
+        result_message = get_result_message_by_process(answers, message, process, db_model, result_message)
         bot.reply_to(message, result_message)
-        setattr(db_model, 'current_process', None)
-        return
-    else:
-        result_message = ''
-
-    if db_model.process_params is None:
-        answers = {}
-    else:
-        answers = json.loads(db_model.process_params)
-
-    result_message = get_result_message_by_process(answers, message, process, db_model, result_message)
-    bot.reply_to(message, result_message)
 
 
 def get_result_message_by_process(answers, message, process, session_model, result_message):
