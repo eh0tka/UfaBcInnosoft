@@ -70,7 +70,7 @@ class WavesAPIService
         return $this->sendPostRequest($builder);
     }
 
-private function calculateTransferSignature($inputData)
+    private function calculateTransferSignature($inputData)
     {
         //do some heavy math
         //1. Transaction type (0x04)
@@ -121,9 +121,18 @@ private function calculateTransferSignature($inputData)
 
         //https://github.com/wavesplatform/Waves/wiki/Cryptographic-practical-details#signing
         //https://github.com/wavesplatform/Waves/wiki/Data-Structures
-        return '44bKL8ubcR6hyuQuV6HAq7opWkNxuZxxJ4TtzjxGEzEEWPczCkdAwzpF4aBcjBLqUAGT5gHfr4kWcYt54erm9vhd';
+        return $signature;
     }
 
+    private static function buildSignature($bytesArray, $privateKey)
+    {
+        $signatureBytes = base58ToByteArray($privateKey);
+
+        //TODO: implement the Curve25519 signature
+        //:: out of time, sorry...
+
+        return '44bKL8ubcR6hyuQuV6HAq7opWkNxuZxxJ4TtzjxGEzEEWPczCkdAwzpF4aBcjBLqUAGT5gHfr4kWcYt54erm9vhd';
+    }
 }
 
 function base58ToByteArray($base58String)
